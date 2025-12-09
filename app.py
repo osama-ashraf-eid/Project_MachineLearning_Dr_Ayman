@@ -1,53 +1,43 @@
 import streamlit as st
 import numpy as np
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 from PIL import Image
 
-# -------------------------------
-# Helper: convert any image to 28x28 grayscale
-# -------------------------------
-def preprocess_image(img):
-    img = img.convert("L")  # grayscale
-    img = img.resize((28, 28))
-    img_array = np.array(img)
-    
-    # عكس الألوان إذا الخلفية ساطعة
-    if np.mean(img_array) > 127:
-        img_array = 255 - img_array
-    
-    # تحويل الصورة إلى binary
-    img_array = (img_array > 128).astype(np.float32)
-    
-    img_array = img_array.reshape(1, 28, 28, 1)
-    return img_array
+# تحميل الموديل
+model = tf.keras.models.load_model("best_model_cnn.keras")
 
+# ---- Title in center ----
+st.markdown(
+    "<h1 style='text-align: center;'>Handwritten Digit Recognition</h1>",
+    unsafe_allow_html=True
+)
 
-# -------------------------------
-# Load model once without compile
-# -------------------------------
-model = load_model("best_model_cnn.keras", compile=False)
-
-# -------------------------------
-# Streamlit Page
-# -------------------------------
-st.title("Digit Prediction")
-
+# ---- Image under title ----
 st.image(
     "https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png",
+    caption="Example of handwritten digits",
     use_column_width=True
 )
 
-st.write("Upload a digit image and the model will predict a number from 0 to 9")
+st.write("---")
 
-uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
+st.write("Upload an image of a digit (any size or color)")
+
+# رفع الصورة
+uploaded_file = st.file_uploader("Choose an image", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
-    img = Image.open(uploaded_file)
-    st.image(img, caption="Your Image", use_column_width=True)
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    processed = preprocess_image(img)
-    pred = model.predict(processed, verbose=0)  # verbose=0 لتقليل المخرجات
-    digit = int(np.argmax(pred))
+    # Preprocessing
+    image = image.convert("L")
+    image = image.resize((28, 28))
+    image = np.array(image) / 255.0
+    image = image.reshape(1, 28, 28, 1)
 
-    st.subheader(f"Predicted Digit: **{digit}**")
+    # Prediction
+    prediction = model.predict(image)
+    predicted_digit = np.argmax(prediction)
 
+    st.success(f"✅ Predicted Digit: **{predicted_digit}**")
