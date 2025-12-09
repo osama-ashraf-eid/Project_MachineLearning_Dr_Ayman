@@ -14,9 +14,13 @@ def preprocess_image(img):
     return img_array
 
 # -------------------------------
-# Load model
+# Load model once and cache it
 # -------------------------------
-model = load_model("best_model_cnn.keras")
+@st.cache_resource
+def load_cnn_model():
+    return load_model("best_model_cnn.keras")
+
+model = load_cnn_model()
 
 # -------------------------------
 # Streamlit Page
@@ -38,7 +42,7 @@ if uploaded_file is not None:
     st.image(img, caption="Your Image", use_column_width=True)
 
     processed = preprocess_image(img)
-    pred = model.predict(processed)
+    pred = model.predict(processed, verbose=0)  # امن لو رفعنا صور كتير
     digit = np.argmax(pred)
 
     st.subheader(f"Predicted Digit: **{digit}**")
