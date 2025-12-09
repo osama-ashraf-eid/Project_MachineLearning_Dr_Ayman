@@ -16,14 +16,14 @@ def preprocess_image(img):
     return img_array
 
 # -------------------------------
-# Load model once
+# Load model once without compile
 # -------------------------------
-model = load_model("best_model_cnn.keras")
+model = load_model("best_model_cnn.keras", compile=False)
 
 # -------------------------------
 # Streamlit Page
 # -------------------------------
-st.title("Prediction")
+st.title("Digit Prediction")
 
 st.image(
     "https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png",
@@ -39,7 +39,7 @@ if uploaded_file is not None:
     st.image(img, caption="Your Image", use_column_width=True)
 
     processed = preprocess_image(img)
-    pred = model.predict(processed, verbose=0)  # مهم: verbose=0
+    pred = model.predict(processed, verbose=0)  # verbose=0 لتقليل المخرجات
     digit = int(np.argmax(pred))
 
     st.subheader(f"Predicted Digit: **{digit}**")
