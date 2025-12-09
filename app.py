@@ -28,15 +28,15 @@ def load_cnn_model(path="best_model_cnn.keras"):
         return None
     return tf.keras.models.load_model(path)
 
-def to_28x28_gray_array(pil_image):
-    """
-    Convert PIL image (any mode/size) to numpy array shaped (1,28,28,1),
-    dtype float32, normalized to [0,1].
-    """
-    img = pil_image.convert("L")          # grayscale
-    img = img.resize((28, 28), Image.ANTIALIAS)
-    arr = np.array(img).astype("float32") / 255.0
-    arr = arr.reshape(1, 28, 28, 1)
+def preprocess_image_pil(pil_img, target_size, channels):
+    img = pil_img.convert("RGB")
+    img = img.resize(target_size, Image.Resampling.LANCZOS)
+
+    arr = np.array(img).astype(np.float32) / 255.0
+
+    if channels == 1:
+        arr = np.mean(arr, axis=2, keepdims=True)
+
     return arr
 
 def preprocess_batch(pil_images):
@@ -151,3 +151,4 @@ elif page == "Analysis":
     analysis_page()
 elif page == "Prediction":
     prediction_page()
+
