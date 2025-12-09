@@ -1,7 +1,7 @@
 # app.py
 """
 Simple Streamlit app with 3 pages: Home, Analysis, Prediction.
-Home and Analysis are empty functions (placeholders).
+Home and Analysis are placeholders.
 Prediction page:
  - loads best_model_cnn.keras from same folder
  - accepts single or multiple images
@@ -28,15 +28,15 @@ def load_cnn_model(path="best_model_cnn.keras"):
         return None
     return tf.keras.models.load_model(path)
 
-def preprocess_image_pil(pil_img, target_size, channels):
-    img = pil_img.convert("RGB")
-    img = img.resize(target_size, Image.Resampling.LANCZOS)
-
-    arr = np.array(img).astype(np.float32) / 255.0
-
-    if channels == 1:
-        arr = np.mean(arr, axis=2, keepdims=True)
-
+def to_28x28_gray_array(pil_image):
+    """
+    Convert a PIL image (any mode/size) to a numpy array shaped (1,28,28,1),
+    dtype float32, normalized to [0,1].
+    """
+    img = pil_image.convert("L")  # grayscale
+    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+    arr = np.array(img).astype("float32") / 255.0
+    arr = arr.reshape(1, 28, 28, 1)
     return arr
 
 def preprocess_batch(pil_images):
@@ -44,7 +44,7 @@ def preprocess_batch(pil_images):
     Take a list of PIL images and return a numpy array shaped (N,28,28,1)
     """
     processed = [to_28x28_gray_array(img) for img in pil_images]
-    batch = np.vstack(processed)  # stacks along first axis since each is (1,28,28,1)
+    batch = np.vstack(processed)  # result shape: (N,28,28,1)
     return batch
 
 def predict_batch(model, pil_images):
@@ -56,25 +56,26 @@ def predict_batch(model, pil_images):
     X = preprocess_batch(pil_images)
     preds = model.predict(X)
     if preds.ndim == 1:
-        # single output regression-like
+        # single-output case
         labels = [float(x) for x in preds]
         confs = [1.0 for _ in preds]
     else:
+        # treat outputs as logits or probs for classes
         probs = tf.nn.softmax(preds, axis=1).numpy()
         labels = list(np.argmax(probs, axis=1).astype(int))
         confs = list(np.max(probs, axis=1).astype(float))
     return labels, confs
 
 # ---------------------
-# Page functions (user requested empty for Home & Analysis)
+# Page functions (placeholders for Home & Analysis)
 # ---------------------
 def home_page():
     st.title("Home")
-    st.write("")  # placeholder - user will edit later
+    st.write("")  # placeholder
 
 def analysis_page():
     st.title("Analysis")
-    st.write("")  # placeholder - user will edit later
+    st.write("")  # placeholder
 
 def prediction_page():
     st.title("Prediction")
@@ -151,4 +152,3 @@ elif page == "Analysis":
     analysis_page()
 elif page == "Prediction":
     prediction_page()
-
