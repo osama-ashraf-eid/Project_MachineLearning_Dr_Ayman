@@ -10,10 +10,17 @@ def preprocess_image(img):
     img = img.convert("L")  # grayscale
     img = img.resize((28, 28))
     img_array = np.array(img)
-    img_array = 255 - img_array  # عكس الألوان إذا الخلفية بيضاء
-    img_array = img_array / 255.0
+    
+    # عكس الألوان إذا الخلفية ساطعة
+    if np.mean(img_array) > 127:
+        img_array = 255 - img_array
+    
+    # تحويل الصورة إلى binary
+    img_array = (img_array > 128).astype(np.float32)
+    
     img_array = img_array.reshape(1, 28, 28, 1)
     return img_array
+
 
 # -------------------------------
 # Load model once without compile
@@ -43,3 +50,4 @@ if uploaded_file is not None:
     digit = int(np.argmax(pred))
 
     st.subheader(f"Predicted Digit: **{digit}**")
+
